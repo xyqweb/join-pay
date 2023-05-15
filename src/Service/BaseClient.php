@@ -15,7 +15,6 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use xyqWeb\JoinPay\Constant\RespCode;
 use xyqWeb\JoinPay\Exceptions\HttpException;
-use xyqWeb\JoinPay\Exceptions\InvalidArgumentException;
 use xyqWeb\JoinPay\Exceptions\JoinPayException;
 use xyqWeb\JoinPay\Support\Config;
 use xyqWeb\JoinPay\Support\Http;
@@ -67,9 +66,10 @@ class BaseClient
     {
         $params['hmac'] = (new Signer())->sign($params, $this->config->get('key'));
         $options = [
-            'timeout' => $this->config->get('timeout'),
+            'http' => $this->config->get('http'),
             'form_params' => $params
         ];
+
         $response = $this->getHttp()->request($api, $method, $options);
         if ($response->getStatusCode() !== 200) {
             throw new HttpException('[汇聚支付异常]请求异常: 状态码 ' . $response->getStatusCode());
