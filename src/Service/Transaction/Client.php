@@ -32,10 +32,10 @@ class Client extends BaseClient
         $baseParams = $this->baseParams();
         $baseParams['p0_Version'] = self::API_VERSION;
         if (!$this->config->get('debug')) {
-            if (empty($this->config->get('aes_key'))){
+            if (empty($this->config->get('merchant_no'))){
                 throw new InvalidArgumentException('报备商户号错误');
             }
-            $params['qa_TradeMerchantNo'] = $this->config->get('aes_key');
+            $params['qa_TradeMerchantNo'] = $this->config->get('merchant_no');
         }
         $params = array_merge($params, $baseParams);
         $response = $this->request($url, $params, 'POST');

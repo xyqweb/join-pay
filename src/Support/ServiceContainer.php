@@ -42,9 +42,9 @@ class ServiceContainer extends Container
     public function logConfiguration(array $config)
     {
         $config = new Config($config);
-        $keys = ['mchnt_cd', 'ins_cd', 'private_key', 'environment', 'mchnt_key'];
+        $keys = ['p1_MerchantNo', 'key'];
         foreach ($keys as $key) {
-            !$config->has($key) || $config[$key] = '***' . substr($config[$key], -5);
+            !$config->has($key) || $config[$key] = '***' . substr($config[$key], -6);
         }
     }
 
@@ -90,7 +90,6 @@ class ServiceContainer extends Container
 
     /**
      * @return array
-     * @author lmh
      */
     public function getDefaultConfig(): array
     {
@@ -99,19 +98,17 @@ class ServiceContainer extends Container
                 'timeout' => 60.0,
             ],
             'debug' => true,
-            'mchnt_cd' => '',
-            'ins_cd' => '',
+            'p1_MerchantNo' => '',
+            'merchant_no' => '',
             'sub_appid' => '',
-            'mchnt_key' => '',
-            'private_key' => '',
-            'public_key' => '',
-            'fuiou_public_key' => '',
+            'key' => '',
         ];
         return array_replace_recursive($base, $this->userConfig);
     }
 
     /**
      * Register providers.
+     * @param array $providers
      */
     private function registerProviders(array $providers)
     {
