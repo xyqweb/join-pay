@@ -18,6 +18,7 @@ use xyqWeb\JoinPay\Support\ServiceContainer;
  * @package xyqWeb\JoinPay\Service
  * @property Transaction\Client $transaction
  * @property Refund\Client $refund
+ * @property Notify\Client $notify
  */
 class Application extends ServiceContainer
 {
