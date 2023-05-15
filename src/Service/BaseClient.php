@@ -62,17 +62,9 @@ class BaseClient
      * @return Collection
      * @throws GuzzleException
      * @throws HttpException
-     * @throws InvalidArgumentException
-     * @author lmh
      */
     public function request(string $api, array $params, string $method = 'post'): Collection
     {
-        if (!$this->config->get('debug')) {
-            if (empty($this->config->get('qa_TradeMerchantNo'))){
-                throw new InvalidArgumentException('报备商户号错误');
-            }
-            $params['qa_TradeMerchantNo'] = $this->config->get('qa_TradeMerchantNo');
-        }
         $params['hmac'] = (new Signer())->sign($params, $this->config->get('key'));
         $options = [
             'timeout' => $this->config->get('timeout'),
@@ -122,7 +114,6 @@ class BaseClient
 
     /**
      * @throws JoinPayException
-     * @author lmh
      */
     public function checkResult(Collection $response)
     {
