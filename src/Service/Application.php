@@ -24,5 +24,6 @@ class Application extends ServiceContainer
     protected $providers = [
         Transaction\ServiceProvider::class,
         Refund\ServiceProvider::class,
+        Notify\ServiceProvider::class,
     ];
 }
