@@ -1,0 +1,28 @@
+{
+  "name": "xyqweb/join-pay",
+  "version": "1.0.0",
+  "description": "汇聚支付 汇聚H5收银台，汇聚PHP",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "xyq",
+      "email": "xyq@weiyian.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "pimple/pimple": "^3.0",
+    "illuminate/support": "^5.8",
+    "guzzlehttp/guzzle": "~6.1",
+    "ext-json": "*",
+    "ext-simplexml": "*",
+    "ext-libxml": "*",
+    "ext-curl": "*",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "xyqWeb\\JoinPay\\": "src"
+    }
+  }
+}
