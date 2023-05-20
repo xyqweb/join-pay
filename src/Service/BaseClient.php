@@ -119,7 +119,7 @@ class BaseClient
     {
         //验证支付
         if (isset($response['ra_Code'])) {
-            if (RespCode::SUCCESS === $response['ra_Code']){
+            if (RespCode::SUCCESS === intval($response['ra_Code'])) {
                 return;
             }
             $message = $response['rb_CodeMsg'] ?? '系统错误';
@@ -128,11 +128,11 @@ class BaseClient
         }
         //验证退款
         if (isset($response['rb_Code'])) {
-            if (RespCode::SUCCESS === $response['rb_Code']){
+            if (RespCode::SUCCESS === intval($response['rb_Code'])) {
                 return;
             }
             $message = $response['rc_CodeMsg'] ?? '系统错误';
-            $code = $response['rc_CodeMsg'] ?? '';
+            $code = $response['rb_Code'] ?? '';
             throw new JoinPayException('[退款异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
         }
         $message = '系统错误';
