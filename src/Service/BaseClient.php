@@ -117,19 +117,26 @@ class BaseClient
      */
     public function checkResult(Collection $response)
     {
-        //验证
-        if (isset($response['ra_Code']) && RespCode::SUCCESS === $response['ra_Code']) {
-            //得到响应，解密数据
-//            $sign = (new Signer())->sign($response->toArray(),$this->config->get('key'));
-//            if (strtoupper($sign)!=$response['hmac']){
-//                $message = $response['rb_CodeMsg'] ?? '系统错误';
-//                $code = $response['ra_Code'] ?? '';
-//                throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
-//            }
-            return;
+        //验证支付
+        if (isset($response['ra_Code'])) {
+            if (RespCode::SUCCESS === $response['ra_Code']){
+                return;
+            }
+            $message = $response['rb_CodeMsg'] ?? '系统错误';
+            $code = $response['ra_Code'] ?? '';
+            throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
         }
-        $message = $response['rb_CodeMsg'] ?? '系统错误';
-        $code = $response['ra_Code'] ?? '';
+        //验证退款
+        if (isset($response['rb_Code'])) {
+            if (RespCode::SUCCESS === $response['rb_Code']){
+                return;
+            }
+            $message = $response['rc_CodeMsg'] ?? '系统错误';
+            $code = $response['rc_CodeMsg'] ?? '';
+            throw new JoinPayException('[退款异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+        }
+        $message = '系统错误';
+        $code = '';
         throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
     }
 }

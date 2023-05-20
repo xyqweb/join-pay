@@ -26,7 +26,7 @@ class Client extends BaseClient
     public function parseNotify(array $params): array
     {
         $sign = (new Signer())->sign($params, $this->config->get('key'));
-        if (strtoupper($sign) != $params['hmac']) {
+        if ($sign != $params['hmac']) {
             throw new JoinPayException('[回调异常]异常代码：签名校验失败');
         }
         return $params;

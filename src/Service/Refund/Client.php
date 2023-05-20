@@ -23,7 +23,6 @@ class Client extends BaseClient
      * @return Collection
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \xyqWeb\JoinPay\Exceptions\HttpException
-     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
      */
     public function create(array $params): Collection
     {
@@ -42,7 +41,6 @@ class Client extends BaseClient
      * @return Collection
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \xyqWeb\JoinPay\Exceptions\HttpException
-     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
      */
     public function refundQuery(array $params): Collection
     {
