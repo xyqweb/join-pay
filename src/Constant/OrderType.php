@@ -15,8 +15,10 @@ class OrderType
      * 订单类型：
      * ALIPAY
      * WECHAT
+     * QUICK
      */
     public const ALIPAY = 'ALIPAY';
     public const WECHAT = 'WECHAT';
+    public const FAST_PAY = 'FAST_PAY';
 
 }

@@ -25,4 +25,8 @@ class PayType
      * 微信小程序
      */
     public const WE_APPLET_PAY = 'WEIXIN_XCX';
+    /**
+     * 快捷支付
+     */
+    public const FAST_PAY = 'FAST_PAY';
 }

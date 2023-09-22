@@ -15,4 +15,5 @@ class TradeType
 {
     public const JSAPI = 'JSAPI';
     public const ALIPAY = 'ALIPAY';
+    public const FAST_PAY = 'FAST_PAY';
 }

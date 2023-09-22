@@ -20,12 +20,12 @@ class Signer
      * @param string $key
      * @return string
      */
-    public function sign(array $signArray, string $key): string
+    public static function sign(array $signArray, string $key): string
     {
         if(isset($signArray['hmac'])){
             unset($signArray['hmac']);
         }
         ksort($signArray);
-        return md5(implode('', $signArray) . $key);
+        return strtoupper(md5(implode('', $signArray) . $key));
     }
 }

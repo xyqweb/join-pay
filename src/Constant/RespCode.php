@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * Created by PhpStorm.
@@ -14,4 +14,6 @@ namespace xyqWeb\JoinPay\Constant;
 class RespCode
 {
     public const SUCCESS = 100;
+    public const FAST_SUCCESS = 'P100';
+    public const FAST_BIZ_CODE_SUCCESS = 'JS000000';
 }

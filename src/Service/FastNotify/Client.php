@@ -1,19 +1,10 @@
 <?php
-declare(strict_types = 1);
 
-/**
- * Created by PhpStorm.
- * User: xingyongqiang
- * Date: 5/15/23
- * Time: 3:40 PM
- */
-
-namespace xyqWeb\JoinPay\Service\Notify;
-
+namespace xyqWeb\JoinPay\Service\FastNotify;
 
 use xyqWeb\JoinPay\Exceptions\JoinPayException;
 use xyqWeb\JoinPay\Service\BaseClient;
-use xyqWeb\JoinPay\Support\Signer;
+use xyqWeb\JoinPay\Support\RsaSigner;
 
 class Client extends BaseClient
 {
@@ -21,12 +12,12 @@ class Client extends BaseClient
      * @param array $params
      * @return array
      * @throws JoinPayException
-     * @see parseNotify
+     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
+     * @throws \xyqWeb\JoinPay\Exceptions\RuntimeException
      */
     public function parseNotify(array $params): array
     {
-        $sign = Signer::sign($params, $this->config->get('key'));
-        if ($sign != $params['hmac']) {
+        if (!RsaSigner::verify($params, $params['sign'] ?? '', $this->config->get('public_key'))) {
             throw new JoinPayException('[回调异常]异常代码：签名校验失败');
         }
         return $params;

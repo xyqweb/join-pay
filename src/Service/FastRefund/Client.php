@@ -1,18 +1,8 @@
 <?php
-declare(strict_types = 1);
 
-/**
- * Created by PhpStorm.
- * User: xingyongqiang
- * Date: 5/15/23
- * Time: 10:02 AM
- */
-
-namespace xyqWeb\JoinPay\Service\Refund;
-
+namespace xyqWeb\JoinPay\Service\FastRefund;
 
 use Illuminate\Support\Collection;
-use xyqWeb\JoinPay\Constant\JoinPayType;
 use xyqWeb\JoinPay\Service\BaseClient;
 
 class Client extends BaseClient
@@ -24,14 +14,16 @@ class Client extends BaseClient
      * @return Collection
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \xyqWeb\JoinPay\Exceptions\HttpException
+     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
+     * @throws \xyqWeb\JoinPay\Exceptions\RuntimeException
      */
     public function create(array $params): Collection
     {
-        $url = $this->getApi('/trade/refund.action');
-        $baseParams = $this->baseParams();
-        $baseParams['q1_version'] = JoinPayType::API_VERSION;
+        $url = $this->getFastApi('/refund');
+        $baseParams = $this->baseFastParams();
+        $baseParams['method'] = 'fastPay.refund';
         $params = array_merge($params, $baseParams);
-        return $this->request($url, $params, 'POST');
+        return $this->fastRequest($url, $params, 'POST');
     }
 
     /**
@@ -41,14 +33,15 @@ class Client extends BaseClient
      * @return Collection
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \xyqWeb\JoinPay\Exceptions\HttpException
+     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
+     * @throws \xyqWeb\JoinPay\Exceptions\RuntimeException
      */
     public function refundQuery(array $params): Collection
     {
-        $url = $this->getApi('/trade/queryRefund.action');
-        $baseParams = $this->baseParams();
-        $baseParams['p3_Version'] = JoinPayType::API_VERSION;
+        $url = $this->getFastApi('/refund');
+        $baseParams = $this->baseFastParams();
+        $baseParams['method'] = 'refund.query';
         $params = array_merge($params, $baseParams);
-        $response = $this->request($url, $params, 'POST');
-        return $response;
+        return $this->fastRequest($url, $params, 'POST');
     }
 }

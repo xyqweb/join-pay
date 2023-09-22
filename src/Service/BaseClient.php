@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * Created by PhpStorm.
@@ -13,27 +13,21 @@ namespace xyqWeb\JoinPay\Service;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use Pimple\Container;
+use xyqWeb\JoinPay\Constant\JoinPayType;
 use xyqWeb\JoinPay\Constant\RespCode;
 use xyqWeb\JoinPay\Exceptions\HttpException;
 use xyqWeb\JoinPay\Exceptions\JoinPayException;
+use xyqWeb\JoinPay\Support\AesSigner;
 use xyqWeb\JoinPay\Support\Config;
 use xyqWeb\JoinPay\Support\Http;
-use xyqWeb\JoinPay\Support\ServiceContainer;
+use xyqWeb\JoinPay\Support\RsaSigner;
 use xyqWeb\JoinPay\Support\Signer;
 use xyqWeb\JoinPay\Traits\ResponseCastable;
 
 class BaseClient
 {
     use ResponseCastable;
-    /**
-     * API版本
-     */
-    public const API_VERSION = 2.1;
-
-    /**
-     * 正式环境API地址
-     */
-    public $TRANSACTION_API_HOST = 'https://www.joinpay.com';
 
     /**
      * @var Config
@@ -46,9 +40,9 @@ class BaseClient
 
     /**
      * BaseClient constructor.
-     * @param ServiceContainer $container
+     * @param Container $container
      */
-    public function __construct(ServiceContainer $container)
+    public function __construct(Container $container)
     {
         $config = $container['config'] ?? [];
         $this->config = $config;
@@ -64,12 +58,45 @@ class BaseClient
      */
     public function request(string $api, array $params, string $method = 'post'): Collection
     {
-        $params['hmac'] = (new Signer())->sign($params, $this->config->get('key'));
+        $params['hmac'] = Signer::sign($params, $this->config->get('key'));
         $options = [
             'http' => $this->config->get('http'),
             'form_params' => $params
         ];
 
+        $response = $this->getHttp()->request($api, $method, $options);
+        if ($response->getStatusCode() !== 200) {
+            throw new HttpException('[汇聚支付异常]请求异常: 状态码 ' . $response->getStatusCode());
+        }
+        return $this->castResponse($response);
+    }
+
+    /**
+     * @param string $api
+     * @param array $params
+     * @param string $method
+     * @return Collection
+     * @throws GuzzleException
+     * @throws HttpException
+     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
+     * @throws \xyqWeb\JoinPay\Exceptions\RuntimeException
+     */
+    public function fastRequest(string $api, array $params, string $method = 'post'): Collection
+    {
+        foreach ($params['data'] as $key => &$value) {
+            if (in_array($key, JoinPayType::REQUIRE_ENCRYPTED_FIELDS)) {
+                $value = AesSigner::encryptECB($value, $params['sec_key']);
+            }
+        }
+        if (!empty($params['sec_key'])) {
+            $params['sec_key'] = RsaSigner::encrypt($params['sec_key'], $this->config->get('platform_public_key'));
+        }
+        $params['data'] = json_encode($params['data'], JSON_UNESCAPED_UNICODE);
+        $params['sign'] = RsaSigner::sign($params, $this->config->get('private_key'));
+        $options = [
+            'http' => $this->config->get('http'),
+            'form_params' => $params
+        ];
         $response = $this->getHttp()->request($api, $method, $options);
         if ($response->getStatusCode() !== 200) {
             throw new HttpException('[汇聚支付异常]请求异常: 状态码 ' . $response->getStatusCode());
@@ -84,8 +111,22 @@ class BaseClient
     {
         // 加载配置数据
         return [
-                'p1_MerchantNo' => $this->config->get('p1_MerchantNo'),
-            ];
+            'p1_MerchantNo' => $this->config->get('p1_MerchantNo'),
+        ];
+    }
+
+    /**
+     * @return array 解除参数
+     */
+    public function baseFastParams(): array
+    {
+        // 加载配置数据
+        return [
+            'mch_no' => $this->config->get('mch_no'),
+            'version' => $this->config->get('version'),
+            'rand_str' => $this->config->get('rand_str'),
+            'sign_type' => $this->config->get('sign_type'),
+        ];
     }
 
     /**
@@ -109,7 +150,18 @@ class BaseClient
      */
     public function getApi(string $api): string
     {
-        return $this->TRANSACTION_API_HOST . $api;
+        return JoinPayType::TRANSACTION_API_HOST . $api;
+    }
+
+    /**
+     * 获取快捷API地址
+     *
+     * @param string $api
+     * @return string
+     */
+    public function getFastApi(string $api): string
+    {
+        return JoinPayType::TRANSACTION_FAST_API_HOST . $api;
     }
 
     /**
@@ -117,6 +169,9 @@ class BaseClient
      */
     public function checkResult(Collection $response)
     {
+        if ($response['hmac'] != Signer::sign($response->toArray(), $this->config->get('key'))) {
+            throw new JoinPayException('[支付异常]异常代码：10080002 异常信息：验证签名失败', '10080002');
+        }
         //验证支付
         if (isset($response['ra_Code'])) {
             if (RespCode::SUCCESS === intval($response['ra_Code'])) {
@@ -137,6 +192,39 @@ class BaseClient
         }
         $message = '系统错误';
         $code = '';
+        throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+    }
+
+    /**
+     * @throws JoinPayException
+     */
+    public function checkFastResult(Collection $response)
+    {
+        if (!RsaSigner::verify($response->toArray(), $response['sign'], $this->config->get('platform_public_key'))) {
+            throw new JoinPayException('[支付异常]异常代码：JS100001 异常信息：签名验证失败', 'JS100001');
+        }
+        if ($response['biz_code'] != RespCode::FAST_BIZ_CODE_SUCCESS) {
+            $message = $response['biz_msg'] ?? '系统错误';
+            $code = $response['biz_code'] ?? '';
+            throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+        }
+
+        $message = $response['data']['err_msg'] ?? '系统错误';
+        $code = $response['data']['err_code'] ?? '';
+        //验证支付
+        if (isset($response['data']['order_status'])) {
+            if (RespCode::FAST_SUCCESS === $response['data']['order_status']) {
+                return;
+            }
+            throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+        }
+        //验证退款
+        if (isset($response['data']['refund_status'])) {
+            if (RespCode::SUCCESS === intval($response['data']['refund_status'])) {
+                return;
+            }
+            throw new JoinPayException('[退款异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+        }
         throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
     }
 }
