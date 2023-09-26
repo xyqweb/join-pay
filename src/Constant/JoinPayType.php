@@ -44,7 +44,6 @@ class JoinPayType
     ];
     public const REQUIRE_ENCRYPTED_FIELDS = [
         'payer_name',
-        'id_type',
         'id_no',
         'bank_card_no',
         'mobile_no',
