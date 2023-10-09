@@ -169,7 +169,7 @@ class BaseClient
      */
     public function checkResult(Collection $response)
     {
-        if ($response['hmac'] != Signer::sign($response->toArray(), $this->config->get('key'))) {
+        if (strtolower($response['hmac']) != Signer::sign($response->toArray(), $this->config->get('key'))) {
             throw new JoinPayException('[支付异常]异常代码：10080002 异常信息：验证签名失败', '10080002');
         }
         //验证支付

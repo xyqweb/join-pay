@@ -26,6 +26,6 @@ class Signer
             unset($signArray['hmac']);
         }
         ksort($signArray);
-        return strtoupper(md5(implode('', $signArray) . $key));
+        return md5(implode('', $signArray) . $key);
     }
 }
