@@ -196,9 +196,15 @@ class BaseClient
     }
 
     /**
+     * checkFastResult
+     *
+     * @param Collection $response
+     * @return Collection
      * @throws JoinPayException
+     * @throws \xyqWeb\JoinPay\Exceptions\InvalidArgumentException
+     * @author xyq
      */
-    public function checkFastResult(Collection $response)
+    public function checkFastResult(Collection $response): Collection
     {
         if (!RsaSigner::verify($response->toArray(), $response['sign'], $this->config->get('platform_public_key'))) {
             throw new JoinPayException('[支付异常]异常代码：JS100001 异常信息：签名验证失败', 'JS100001');
@@ -208,20 +214,32 @@ class BaseClient
             $code = $response['biz_code'] ?? '';
             throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
         }
-
+        if (is_string($response['data'])) {
+            $response['data'] = json_decode($response['data'], true);
+        }
+        if (is_array($response['data']) && !empty($response['data'])) {
+            if (!empty($response['sec_key'])) {
+                $response['sec_key'] = RsaSigner::decrypt($response['sec_key'], $this->config->get('platform_public_key'));
+            }
+            foreach ($response['data'] as $key => &$val) {
+                if (in_array($key, JoinPayType::REQUIRE_ENCRYPTED_FIELDS)) {
+                    $val = AesSigner::decryptECB($val, $response['sec_key']);
+                }
+            }
+        }
         $message = $response['data']['err_msg'] ?? '系统错误';
         $code = $response['data']['err_code'] ?? '';
         //验证支付
         if (isset($response['data']['order_status'])) {
             if (RespCode::FAST_SUCCESS === $response['data']['order_status']) {
-                return;
+                return $response;
             }
             throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
         }
         //验证退款
         if (isset($response['data']['refund_status'])) {
             if (RespCode::SUCCESS === intval($response['data']['refund_status'])) {
-                return;
+                return $response;
             }
             throw new JoinPayException('[退款异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
         }
