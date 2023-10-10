@@ -232,8 +232,12 @@ class BaseClient
         $message = $response['data']['err_msg'] ?? '系统错误';
         $code = $response['data']['err_code'] ?? '';
         // 验证签约
-        if (isset($response['data']['status']) && !empty($response['data']['sign_no'])) {
-            return $response;
+        if (isset($response['data']['status'])) {
+            if (!empty($response['data']['sign_no'])) {
+                return $response;
+            }
+            $message = '签约失败';
+            $code = 'P2000';
         }
         //验证支付
         if (isset($response['data']['order_status'])) {
