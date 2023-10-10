@@ -219,16 +219,22 @@ class BaseClient
         }
         if (is_array($response['data']) && !empty($response['data'])) {
             if (!empty($response['sec_key'])) {
-                $response['sec_key'] = RsaSigner::decrypt($response['sec_key'], $this->config->get('platform_public_key'));
+                $response['sec_key'] = RsaSigner::decrypt($response['sec_key'], $this->config->get('private_key'));
             }
-            foreach ($response['data'] as $key => &$val) {
+            $data = $response['data'];
+            foreach ($data as $key => &$val) {
                 if (in_array($key, JoinPayType::REQUIRE_ENCRYPTED_FIELDS)) {
                     $val = AesSigner::decryptECB($val, $response['sec_key']);
                 }
             }
+            $response['data'] = $data;
         }
         $message = $response['data']['err_msg'] ?? '系统错误';
         $code = $response['data']['err_code'] ?? '';
+        // 验证签约
+        if (isset($response['data']['status'])) {
+            return $response;
+        }
         //验证支付
         if (isset($response['data']['order_status'])) {
             if (RespCode::FAST_SUCCESS === $response['data']['order_status']) {
