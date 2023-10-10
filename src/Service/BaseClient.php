@@ -232,12 +232,12 @@ class BaseClient
         $message = $response['data']['err_msg'] ?? '系统错误';
         $code = $response['data']['err_code'] ?? '';
         // 验证签约
-        if (isset($response['data']['status'])) {
+        if (isset($response['data']['status']) && !empty($response['data']['sign_no'])) {
             return $response;
         }
         //验证支付
         if (isset($response['data']['order_status'])) {
-            if (RespCode::FAST_SUCCESS === $response['data']['order_status']) {
+            if (RespCode::FAST_SUCCESS === $response['data']['order_status'] || RespCode::FAST_AGREE_SUCCESS === $response['data']['order_status']) {
                 return $response;
             }
             throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);

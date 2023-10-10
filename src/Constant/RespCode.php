@@ -14,6 +14,7 @@ namespace xyqWeb\JoinPay\Constant;
 class RespCode
 {
     public const SUCCESS = 100;
-    public const FAST_SUCCESS = 'P100';
+    public const FAST_SUCCESS = 'P1000';
+    public const FAST_AGREE_SUCCESS = 'P3000';
     public const FAST_BIZ_CODE_SUCCESS = 'JS000000';
 }
