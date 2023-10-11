@@ -224,6 +224,9 @@ class BaseClient
         if (is_array($data) && !empty($data)) {
             foreach ($data as $key => &$val) {
                 if (in_array($key, JoinPayType::REQUIRE_ENCRYPTED_FIELDS)) {
+                    if ($key == 'sign_no') {
+                        continue;
+                    }
                     $val = AesSigner::decryptECB($val, $response['sec_key']);
                 }
             }

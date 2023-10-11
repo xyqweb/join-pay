@@ -50,6 +50,5 @@ class JoinPayType
         'expire_date',
         'cvv',
         'sign_no',
-        'bank_card_no',
     ];
 }
