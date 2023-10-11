@@ -217,11 +217,11 @@ class BaseClient
         if (is_string($response['data'])) {
             $response['data'] = json_decode($response['data'], true);
         }
-        if (is_array($response['data']) && !empty($response['data'])) {
-            if (!empty($response['sec_key'])) {
-                $response['sec_key'] = RsaSigner::decrypt($response['sec_key'], $this->config->get('private_key'));
-            }
-            $data = $response['data'];
+        $data = $response['data'];
+        if (!empty($response['sec_key'])) {
+            $response['sec_key'] = RsaSigner::decrypt($response['sec_key'], $this->config->get('private_key'));
+        }
+        if (is_array($data) && !empty($data)) {
             foreach ($data as $key => &$val) {
                 if (in_array($key, JoinPayType::REQUIRE_ENCRYPTED_FIELDS)) {
                     $val = AesSigner::decryptECB($val, $response['sec_key']);
@@ -229,30 +229,12 @@ class BaseClient
             }
             $response['data'] = $data;
         }
-        $message = $response['data']['err_msg'] ?? '系统错误';
         $code = $response['data']['err_code'] ?? '';
-        // 验证签约
-        if (isset($response['data']['status'])) {
-            if (!empty($response['data']['sign_no'])) {
-                return $response;
-            }
-            $message = '签约失败';
-            $code = 'P2000';
-        }
-        //验证支付
-        if (isset($response['data']['order_status'])) {
-            if (RespCode::FAST_SUCCESS === $response['data']['order_status'] || RespCode::FAST_AGREE_SUCCESS === $response['data']['order_status']) {
-                return $response;
-            }
+        if (!empty($code)) {
+            $message = $response['data']['err_msg'] ?? '系统错误';
             throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
+        } else {
+            return $response;
         }
-        //验证退款
-        if (isset($response['data']['refund_status'])) {
-            if (RespCode::SUCCESS === intval($response['data']['refund_status'])) {
-                return $response;
-            }
-            throw new JoinPayException('[退款异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
-        }
-        throw new JoinPayException('[支付异常]异常代码：' . $code . ' 异常信息：' . $message, $code);
     }
 }
