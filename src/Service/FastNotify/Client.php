@@ -17,7 +17,7 @@ class Client extends BaseClient
      */
     public function parseNotify(array $params): array
     {
-        if (!RsaSigner::verify($params, $params['sign'] ?? '', $this->config->get('public_key'))) {
+        if (!RsaSigner::verify($params, $params['sign'] ?? '', $this->config->get('platform_public_key'))) {
             throw new JoinPayException('[回调异常]异常代码：签名校验失败');
         }
         return $params;
