@@ -4,7 +4,7 @@ namespace xyqWeb\JoinPay\Constant;
 
 class JoinPayType
 {
-    public const API_VERSION = 2.3;
+    public const API_VERSION = 2.1;
     public const FAST_API_VERSION = '1.0';
     public const TRANSACTION_API_HOST = 'https://www.joinpay.com';
     public const TRANSACTION_FAST_API_HOST = 'https://api.joinpay.com';
